@@ -1,0 +1,83 @@
+\section*{Introducción al ILS}
+
+El ILS (\textit{Instrumental Landing System}) es un sistema, basado en la modulación espacial, que permite el guiado de las aeronaves durante el aterrizaje. Se compone del \textit{localizador} (LOC), que proporciona guiado horizontal, y la \textit{senda de planeo} (GP), que proporciona guiado vertical, cuyo funcionamiento es análogo.
+
+En esencia, el receptor es un amperímetro que indica si la aeronave está a la derecha ($\text{DDM}<0$), centrado ($\text{DDM} = 0$) o a la izquierda ($\text{DDM} >0$) de la prolongación del eje de la pista, en el caso del localizador. Similar en la senda de planeo.
+
+El sistema en tierra del localizador emite una serie de señales:
+\begin{itemize}
+    \item \textbf{PBL}: la portadora, de entre 108 y 112 MHz, que es modulada en AM (con $m=0.2$) por dos bandas laterales (CSB) de 90 y 150 Hz.
+    \item \textbf{BL}: las bandas laterales (SBO) o \textit{señales de navegación}. Son de 90 Hz y 150 Hz en contrafase.
+    \item \textbf{Señal de identificación}
+\end{itemize}
+
+Tras el procesado adecuado de las señales, se obtiene el <<\textit{Difference Depth Modulation}>> (DDM).
+
+\section*{Generalidades de la práctica y gráficas}
+El objetivo es la simulación de la segunda etapa de un receptor superheterodino de ILS, siguiendo las instrucciones proporcionadas en Moodle, y con ayuda de bibliografía adicional:
+\begin{itemize}
+    \item Apuntes y diapositivas de la asignatura.
+    \item El libro \textit{Introducción al Sistema de Navegación Aérea}, cuyos autores son varios profesores de la Escuela, para consultas puntuales sobre el funcionamiento del ILS.
+    \item <<\textcolor{blue}{\textit{\href{https://biblus.us.es/bibing/proyectos/abreproy/91195/fichero/TFG.pdf}{Modelado y Simulación de Receptor Digital ILS: Sistema de Aterrizaje Instrumental}}}>> por Fernando Ruiz. Aunque es de mayor nivel que la práctica, sí me ha servido como consulta puntual.
+    \item Documentación de Matlab, especialmente: \textcolor{blue}{\href{https://es.mathworks.com/help/signal/ref/downsample.html}{\texttt{downsample}}}, \textcolor{blue}{\href{https://es.mathworks.com/help/signal/ref/butter.html}{\texttt{butter}}}, \textcolor{blue}{\href{https://es.mathworks.com/help/signal/ref/ellip.html}{\texttt{ellip}}} y \textcolor{blue}{\href{https://es.mathworks.com/help/signal/ref/freqz.html}{\texttt{freqz}}}.
+\end{itemize}
+
+Mi intención con el código, disponible en \textcolor{blue}{\textit{\href{https://github.com/IvanMoyaO/Practica-CR}{GitHub}}} y al final del PDF, es que sea lo más modular posible, de tal forma que puedan usarse las distintas secciones con casi total independencia del resto.
+
+Con $E_{ss} = 1$ se obtiene $\text{DDM} = 0.1934$, lo cual tiene lógica. Seguramente el código esté bien.
+
+Respecto a la pregunta planteada, <<\textit{por qué se ha utilizado un valor de 0.04}>> (en el filtro Butterworth): para el filtrado, se ha de elegir un valor suficientemente pequeño para eliminar frecuencias superiores, a la par que no sea demasiado pequeño. En este caso:
+\begin{equation}
+    f_s \cdot 0.04 = 8 \cdot f_{IF1} \cdot 0.04 = 8 \cdot 10.7 \cdot 10^6 \cdot 0.04 = 3.42 \cdot 10^6 \, \text{Hz}
+\end{equation}
+
+Que, al compararlo con la frecuencia que nos interesa (455 kHz), obtenemos $\dfrac{3.42 \cdot 10^6}{455 \cdot 10^3} = 7.516$, un número que cumple sendos requisitos (ni muy pequeño, ni muy grande).
+
+\section*{Gráficas}
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.45\linewidth]{include//figures/pbl.pdf}
+    \includegraphics[width=0.45\linewidth]{include//figures/bl.pdf}
+    \includegraphics[width=0.5\linewidth]{include//figures/pbl+bl.pdf}
+    \caption{Señal PBl (1), BL (2) y ambas (3)}
+\end{figure}
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.45\linewidth]{include//figures/multiplicador.pdf}
+    \includegraphics[width=0.45\linewidth]{include//figures/mezclador.pdf}
+    \caption{Señal a la salida del mutliplicador (4) y del mezclador (5)}
+\end{figure}
+
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.45\linewidth]{include//figures/pbl+blhz.pdf}
+    \includegraphics[width=0.45\linewidth]{include//figures/multiplicadorhz.pdf}
+    \includegraphics[width=0.5\linewidth]{include//figures/muestreo.pdf}
+    \caption{Respuestas en frecuencia de PBL+BL, a la salida del mutliplicador y a la salida del mezclador (6)} 
+\end{figure}
+
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.6\linewidth]{include//figures/detector.pdf}
+    \includegraphics[width=0.45\linewidth]{include//figures/envolvente_antes.pdf}
+    \includegraphics[width=0.45\linewidth]{include//figures/envolvente_despues.pdf}
+    \caption{Señal a la salida del detector (7), espectro de la envolvente antes del diezmado y después (8)} 
+\end{figure}
+
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.45\linewidth]{include//figures/espectro.pdf}
+    \includegraphics[width=0.45\linewidth]{include//figures/senales.pdf}
+    \includegraphics[width=0.6\linewidth]{include//figures/envolvente+senales.pdf}
+    \caption{Espectro junto con módulo de las funciones de transferencia (9), señales de navegación y envolvente y señales de navegación (10)} 
+\end{figure}
+
+
+
+
+\include{contents/codigo}

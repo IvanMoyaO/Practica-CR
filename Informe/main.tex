@@ -1,0 +1,38 @@
+\documentclass[12pt,a4paper,titlepage,twoside]{report}
+
+% ============
+% CONFIGURACIÓN
+% vvvvvvvvvvvv
+  
+  \newcommand{\Subject}{ Comunicaciones y Redes } % Lo que va debajo de "Prácticas de Laboratorio" en la portada, y a arriba a la derecha en todas las hojas
+
+   \newcommand{\Lab}{ Simulación Digital de un Receptor ILS } % Debajo de nombre asign
+  
+  \newcommand{\Degree}{ Ingeniería Aeroespacial } % Lo que va debajo de los títulos en la portada  
+  \newcommand{\Especiality}{ Navegación y Sistemas Aeroespaciales } % Debajo del grado
+
+  \newcommand{\Author}{ Iván Moya Ortiz } % Lo que va encima de la fecha
+  \newcommand{\Location}{ Madrid } % Lo que acompaña a la fecha
+% ^^^^^^^^^^^^
+
+% ============
+% ARCHIVOS DE CONFIGURACIÓN
+% ============
+\input{include/pkgs}
+\input{include/page_style}
+\input{include/boxes}
+\input{include/math_symbols}
+% ========================
+\begin{document}
+
+\input{include/title}
+
+\setcounter{page}{0}
+\pagenumbering{arabic}
+
+
+\input{contents/contenido}
+
+
+% ============
+\end{document}
