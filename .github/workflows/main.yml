@@ -10,6 +10,7 @@ jobs:
         uses: xu-cheng/latex-action@v3
         with:
           root_file: Informe/main.tex
+          working_directory: Informe
       - name: Upload PDF file
         uses: actions/upload-artifact@v4
         with:
