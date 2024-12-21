@@ -218,7 +218,7 @@ hold on
 grid on
 title('Señal a la salida del mezclador')
 ylabel('Amplitud [V]')
-xlabel('Muestras [admin]')
+xlabel('Muestras [adim]')
 plot(n, bloqueodc, 'color', color_base)
 hold off 
 fig = gcf;
