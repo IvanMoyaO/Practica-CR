@@ -1,4 +1,4 @@
-%% constantes/datos
+%% Constantes/datos
 f_IF1 = 10.7 * 10^6; % 10.7 MHz, portadora inicial.
 f_IF2 = 455 * 10^3; % 455 kHz, portadora tras conversión.
 f_s = 8 * f_IF1; % = 8 * 10.7 MHz, frec de muestreo
@@ -7,7 +7,7 @@ f_m90 = 90; % 90 Hz, tono "2" de navegación (+ en izq).
 A_c = 10; % 10 V, amplitud de la portadora
 m = 0.2; % adim, índice de modulación.
 n = 1:12000000; % adim, número de muestras (vector).
-Ess = 1; % V
+Ess = 1; % V podría generar también números aleatorios entre -1 y 1.
 
 % Son colores legibles, fáciles de diferenciar para daltónicos
 % https://personal.sron.nl/~pault/#sec:qualitative
@@ -17,21 +17,69 @@ color_b = '#EE6677';
 
 
 %% Funciones auxiliares 
-function recta = rectificador(signal)
-    recta = (signal > 0) .* signal;
+function x_out = rectificador(x_in)
+% Rectifica ondas
+% Input: 
+%       x_in: señal cualquiera.
+% Output:
+%       x_out: señal rectificada.
+    x_out = (x_in > 0) .* x_in;
 end
 
-function nodc = bloqueadordc(signal)
-    nodc = signal - mean(signal);
+function x_out = bloqueadordc(x_in)
+% Bloquea la componente continua en ondas
+% Input: 
+%       x_in: señal cualquiera.
+% Output:
+%       x_out: señal sin componente continua.
+    x_out = x_in - mean(x_in);
 end
 
-%% Variables varias
-% Señales de navegación y portadora
+function x_out = multiplicador(x_in1, x_in2)
+% Multiplica dos ondas dadas
+% Input: 
+%       x_in1: señal cualquiera.
+%       x_in2: otra señal cualquiera.
+% Output:
+%       x_out: señal obtenida como producto de x_in y x_OL
+    x_out = x_in1 .* x_in2;
+end
+
+function x_out = mezclador(x_in, x_OL)
+% Multiplica dos señales, luego filtra la salida.
+% Input: 
+%       x_in: señal cualquiera.
+%       x_OL: otra señal cualquiera (oscilador local en ILS).
+% Output:
+%       x_out: señal obtenida tras el mezclado de x_in con x_ol
+    x_aux = multiplicador(x_in, x_OL);
+    [b, a] = butter(2, 0.04);
+    x_out = filter(b, a, x_aux);
+    x_out = x_out * max(x_aux)/max(x_out);
+end
+
+function x_out = detector(x_in, w_c)
+% Rectifica, filtra y bloquea la componente continua de una señal
+% Input: 
+%       x_in: señal cualquiera.
+%       w_c: pulsación de corte.
+% Output:
+%       x_out: señal de salida.
+    x_rin = rectificador(x_in);
+    [b, a] = butter(1, w_c); 
+    x_out = filter(b, a, x_rin);
+    x_out = x_out * max(x_rin)/max(x_out);
+    x_out = bloqueadordc(x_out);
+end
+
+%% Variables y señales básicas
+% Señales de navegación
 w_d90 = 2*pi * f_m90/f_s; % pulsación señal 90 Hz
 w_d150 = 2*pi * f_m150/f_s;  % pulsación señal 159 Hz
 w_dp = 2*pi * f_IF1/f_s; %  % pulsación portadora
 x_90 = sin(n * w_d90 ); % señal de navegación 90 Hz
 x_150 = sin(n * w_d150); % señal de navegación 150 Hz
+
 portadora = cos(n * w_dp); % portadora
 
 % Señales mezclador
@@ -89,14 +137,9 @@ exportgraphics(fig, 'pbl+bl.pdf', 'ContentType', 'vector');
 
 %% Mezclador 
 % https://es.mathworks.com/help/signal/ref/butter.html
-multiplicada = completa .* x_OL;
+multiplicada = multiplicador(completa, x_OL); % esta no haría falta, ya que existe mezclador(), pero como me piden la gráfica, la uso.
 
-% razonar en informe
-[b, a] = butter(2, 0.04); % Filtro paso banda
-
-filtrada = filter(b, a, multiplicada);
-
-amplificada = (max(multiplicada)/max(filtrada)) * filtrada;
+amplificada = mezclador(completa, x_OL);
 
 % Figura salida multiplicador
 figure
@@ -167,18 +210,7 @@ fig = gcf;
 exportgraphics(fig, 'muestreo.pdf', 'ContentType', 'vector'); 
 
 %% Detector
-% Rectificador
-rectificada = rectificador(amplificada);
-
-%Filtrado
-[b, a] = butter(1, w_c); % se sobreescriben los coefs b, a de antes, no importa ya que nos dan igual
-filtrada = filter(b, a, rectificada);
-
-% corrección de atenuación (amplificación)
-filtrada = (max(rectificada)/(max(filtrada))) * filtrada; % mantengo el nombre por no poner amplificada2
-
-% Bloqueador de DC (que es lo mismo que quitarle la media).
-bloqueodc = bloqueadordc(filtrada);
+bloqueodc = detector(amplificada, w_c);
 
 % Representación a la salida de le envolvente
 figure
@@ -192,7 +224,7 @@ hold off
 fig = gcf;
 exportgraphics(fig, 'detector.pdf', 'ContentType', 'vector'); 
 
-% diezmado https://es.mathworks.com/help/signal/ref/downsample.html
+% diezmado, https://es.mathworks.com/help/signal/ref/downsample.html
 diezmado = downsample(bloqueodc, 2400); % señal diezmada
 n_2 = downsample(n, 2400); % muestras diezmadas
 f_s2 = f_s/2400; % frecuencia diezmada
@@ -307,4 +339,4 @@ exportgraphics(fig, 'envolvente+senales.pdf', 'ContentType', 'vector');
 
 %% DDM
 E_c = bloqueodc;
-DDM = (max(f_90(1,3500:end)) - max(f_150(1,3500:end)))/(max(E_c)) % a partir de ~3000 ya se estabiliza
+DDM = (max(f_90(1,3000:end)) - max(f_150(1,3000:end)))/(max(E_c)) % a partir de ~3000 ya se estabiliza
